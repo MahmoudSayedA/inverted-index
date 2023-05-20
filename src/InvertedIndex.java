@@ -2,7 +2,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class InvertedIndex {
     private HashMap<String, DictEntry> index;
@@ -18,6 +20,8 @@ public class InvertedIndex {
         for (String filename : filenames) {
             try (BufferedReader reader = new BufferedReader(new FileReader(new File(filename)))) {
                 String line;
+                // create dumy pointer to track byteOffset
+                int byteOffset = 0;
                 // Read each line of the file
                 while ((line = reader.readLine()) != null) {
                     // Split the line into words seperated by spaces
@@ -43,11 +47,16 @@ public class InvertedIndex {
                             newPosting.next = entry.pList;
                             entry.pList = newPosting;
                         } else {
-                            // If the entry already has a posting for this document, increment its term
-                            // frequency
+                            // If the entry already has a posting for this document, increment its term frequency
                             entry.pList.dtf++;
                         }
+                        // add current byteOffset
+                        entry.pList.byteOffset.add(byteOffset);
+                        // update byteOffset to skip the word
+                        byteOffset += word.length() + 1;
                     }
+                    // update byteOffset to skip the new line
+                    byteOffset ++;
                 }
             } catch (IOException e) {
                 // Handle any errors that occur while reading the file
@@ -59,31 +68,77 @@ public class InvertedIndex {
         // Return the completed index
         return index;
     }
-    
-    private void listFilesContainingWord(String word, HashMap<String, DictEntry> index) {
+
+    private void listFilesContainingQuery(String query, HashMap<String, DictEntry> index) {
         // Check if the index has been built
-        if(index == null){
-            System.out.println("Index has not been built\nbuild it first");
+        if (index == null) {
+            System.out.println("Index has not been built. Build it first.");
             return;
         }
-        // Convert the word to lowercase
-        word = word.toLowerCase();
-        // If the word is not in the index, print a message saying so
-        if (!index.containsKey(word)) {
-            System.out.println(word + " does not exist in any document.");
-        } else {
-            // Otherwise, print the names of the files that contain the word
-            DictEntry entry = index.get(word);
-            Posting posting = entry.pList;
-            System.out.println(word + " appears in the following docs:");
-            while (posting != null) {
-                System.out.println("file" + posting.docId + ".txt");
+    
+        // Convert the query to lowercase and split it into individual words
+        String[] words = query.toLowerCase().split("\\s+");
+    
+        // Check if the first word of the query is in the index
+        String firstWord = words[0];
+        if (!index.containsKey(firstWord)) {
+            System.out.println("None of the query terms exist in any document.");
+            return;
+        }
+    
+        // Find the postings list for the first word
+        DictEntry entry = index.get(firstWord);
+        Posting posting = entry.pList;
+    
+        // Find the documents that contain all the words in the query
+        List<Integer> candidateDocs = new ArrayList<>();
+        for (int i = 0; i < entry.doc_freq; i++) {
+            // Add the document to the list of candidate documents
+            candidateDocs.add(posting.docId);
+    
+            // Check if the remaining words in the query occur in the document
+            boolean foundMatch = true;
+            // int prevPos = -1;
+            for (int j = 1; j < words.length; j++) {
+                String word = words[j];
+                if (!index.containsKey(word)) {
+                    foundMatch = false;
+                    break;
+                }
+    
+                // Find the position of the previous word in the document
+                DictEntry prevEntry = index.get(words[j - 1]);
+                Posting prevPosting = prevEntry.pList;
+                while (prevPosting.docId != posting.docId) {
+                    prevPosting = prevPosting.next;
+                }
+                int prevPos = prevPosting.byteOffset.get(prevPosting.dtf - 1);
+    
+                // Find the position of the current word in the document
+                DictEntry currEntry = index.get(word);
+                Posting currPosting = currEntry.pList;
+                while (currPosting.docId != posting.docId) {
+                    currPosting = currPosting.next;
+                }
+                if (!currPosting.byteOffset.contains(prevPos + 1)) {
+                    foundMatch = false;
+                    break;
+                }
+            }
+    
+            // Print the document if all the words in the query occur in it
+            if (foundMatch) {
+                System.out.println("Document " + posting.docId + " contains the query.");
+            }
+    
+            // Move to the next document in the postings list
+            if (i < entry.doc_freq - 1) {
                 posting = posting.next;
             }
         }
     }
 
     public void search(String word){
-        this.listFilesContainingWord(word, index);
+        this.listFilesContainingQuery(word, index);
     }
 }

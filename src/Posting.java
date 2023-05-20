@@ -1,3 +1,5 @@
+import java.util.Vector;
+
 /**
  * Posting: entity class to deal as linked list
  * 
@@ -9,4 +11,5 @@ public class Posting {
     Posting next = null;
     int docId;
     int dtf = 1;
+    Vector<Integer>byteOffset=new Vector<>();
 }
