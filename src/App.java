@@ -8,7 +8,7 @@ public class App {
         index.buildIndex(files);
         try (Scanner scanner = new Scanner(System.in)) {
             System.out.println("enter word to search about:");
-            String word = scanner.nextLine();
+            String word = scanner.next();
             index.search(word);
         } catch (Exception e) {
             e.printStackTrace();

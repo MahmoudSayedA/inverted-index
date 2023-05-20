@@ -120,7 +120,7 @@ public class InvertedIndex {
                 while (currPosting.docId != posting.docId) {
                     currPosting = currPosting.next;
                 }
-                if (!currPosting.byteOffset.contains(prevPos + 1)) {
+                if (!currPosting.byteOffset.contains(prevPos + firstWord.length() + 1)) {
                     foundMatch = false;
                     break;
                 }
