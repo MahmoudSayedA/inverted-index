@@ -107,23 +107,38 @@ public class InvertedIndex {
                 }
     
                 // Find the position of the previous word in the document
-                DictEntry prevEntry = index.get(words[j - 1]);
+                String preWord = words[j - 1];
+                DictEntry prevEntry = index.get(preWord);
                 Posting prevPosting = prevEntry.pList;
                 while (prevPosting.docId != posting.docId) {
+                    // navigate to the element in the list
                     prevPosting = prevPosting.next;
+                    // to be sure that the posting is already found
+                    if(prevPosting == null)
+                        break;
                 }
                 int prevPos = prevPosting.byteOffset.get(prevPosting.dtf - 1);
     
                 // Find the position of the current word in the document
                 DictEntry currEntry = index.get(word);
                 Posting currPosting = currEntry.pList;
+                
                 while (currPosting.docId != posting.docId) {
+                    // navigate to the element in the list
                     currPosting = currPosting.next;
+                    // to be sure that the posting is already found
+                    if(currPosting == null)
+                        break;
                 }
-                if (!currPosting.byteOffset.contains(prevPos + firstWord.length() + 1)) {
+                if(currPosting == null)
+                        break;
+
+                if (!currPosting.byteOffset.contains(prevPos + preWord.length() + 1)) {
                     foundMatch = false;
                     break;
                 }
+                // update first word with the second value
+                // firstWord = preWord;
             }
     
             // Print the document if all the words in the query occur in it
