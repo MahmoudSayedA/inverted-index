@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class App {
+    // test postianl index on the local file
     public static void main(String[] args) throws Exception {
         // prepare file names
         String[] files = { "test1.txt", "test2.txt", "test3.txt" };
@@ -17,35 +18,45 @@ public class App {
             System.out.println("enter word to search about:");
             String word = scanner.nextLine();
             // get results
-            Map<Integer,Double>docs = index.culculateCosineSimilarity(word);
+            Map<String,Double>docs = index.culculateCosineSimilarity(word);
             // print results
             printSortedMap(docs);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+        
     /**
      * funciont sort and print Map
      * @param docs
      */
-    private static void printSortedMap(Map<Integer, Double> docs){
+    protected static void printSortedMap(Map<String, Double> docs){
         // Create a list of map entries
-        List<Map.Entry<Integer, Double>> entries = new ArrayList<>(docs.entrySet());
+        List<Map.Entry<String, Double>> entries = new ArrayList<>(docs.entrySet());
 
         // Sort the list based on the value of each entry reversed
-        entries.sort(Comparator.comparing(Map.Entry<Integer,Double>::getValue).reversed());
+        entries.sort(Comparator.comparing(Map.Entry<String,Double>::getValue).reversed());
 
         // Create a new LinkedHashMap to store the sorted entries
-        Map<Integer, Double> sortedDocs = new LinkedHashMap<>();
+        Map<String, Double> sortedDocs = new LinkedHashMap<>();
 
         // Add each entry to the new map in the sorted order
-        for (Map.Entry<Integer, Double> entry : entries) {
+        for (Map.Entry<String, Double> entry : entries) {
             sortedDocs.put(entry.getKey(), entry.getValue());
         }
 
-        System.out.println("\n\n----------------- document => similarity-----------------\n");
+        System.out.println("\n\n----------------- documentName => similarity-----------------\n");
         // Print the sorted map
-        sortedDocs.forEach((key, value) -> System.out.println("document " + key + " => " + value));
+        sortedDocs.forEach((key, value) -> System.out.println( key + " => " + value));
         System.out.println("\n\t----------------------------------\n\n");
     }
+
+
+    // public static void main(String[] args) {
+    //     WebCrawler webCrawler =new WebCrawler(2);
+    //     String url = "https://example.com/";
+    //     String query = "illustrative examples";
+    //     webCrawler.searchOnline(url, query);
+    // }
 }
+

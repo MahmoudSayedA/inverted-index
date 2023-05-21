@@ -10,6 +10,7 @@ import java.util.Vector;
 public class Posting {
     Posting next = null;
     int docId;
+    String docName="unknown";
     int dtf = 1;
     Vector<Integer>byteOffset=new Vector<>();
 }

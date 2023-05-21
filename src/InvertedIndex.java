@@ -13,7 +13,6 @@ import java.util.Vector;
 
 public class InvertedIndex {
     private HashMap<String, DictEntry> index;
-
     public InvertedIndex(){
         this.index=new HashMap<>();
     }
@@ -53,6 +52,7 @@ public class InvertedIndex {
                         if (entry.pList == null || entry.pList.docId != docId) {
                             Posting newPosting = new Posting();
                             newPosting.docId = docId;
+                            newPosting.docName =filename;
                             entry.doc_freq++;
                             newPosting.next = entry.pList;
                             entry.pList = newPosting;
@@ -85,8 +85,9 @@ public class InvertedIndex {
      * @param index
      * @return list of files
      */
-    private List<Integer> listFilesContainingQuery(String query, HashMap<String, DictEntry> index) {
+    private List<String> listFilesContainingQuery(String query, HashMap<String, DictEntry> index) {
         List<Integer>docVector =new Vector<>(0, 0);
+        List<String>docNames = new Vector<>();
         // Check if the index has been built
         if (index == null) {
             System.out.println("Index has not been built. Build it first.");
@@ -162,6 +163,7 @@ public class InvertedIndex {
             if (foundMatch) {
                 // System.out.println("Document " + posting.docId + " contains the query.");
                 docVector.add(posting.docId);
+                docNames.add(posting.docName);
             }
     
             // Move to the next document in the postings list
@@ -169,7 +171,7 @@ public class InvertedIndex {
                 posting = posting.next;
             }
         }
-        return docVector;
+        return docNames;
     }
     
     /**
@@ -177,7 +179,7 @@ public class InvertedIndex {
      * @param word
      * @return list of files
      */
-    public List<Integer> search(String word){
+    public List<String> search(String word){
         return this.listFilesContainingQuery(word, index);
     }
     
@@ -186,18 +188,16 @@ public class InvertedIndex {
      * @param phrase
      * @return `map<Integer, Double>` of documents id and similarity
      */
-    public Map<Integer,Double> culculateCosineSimilarity(String phrase){
+    public Map<String,Double> culculateCosineSimilarity(String phrase){
         // get all filles contains this phrase
-        List<Integer> docIds = this.search(phrase);
-        if(docIds == null){
+        List<String> docNames = this.search(phrase);
+        if(docNames == null){
             return null;
         }
         // container to store each doc with 
-        Map<Integer,Double>docs = new HashMap<>();
+        Map<String,Double>docs = new HashMap<>();
         // loop on matched docs
-        for (int id : docIds) {
-            // prepare fileName
-            String fileName = ("test" + id + ".txt");
+        for (String fileName : docNames) {
             Path path = Paths.get(fileName);
             try {
                 // reed content of the file
@@ -206,7 +206,7 @@ public class InvertedIndex {
                 // calculate similarity
                 double similarity = CosineSimilarity.calculateCosineSimilarity(phrase, content);
                 // insert into docs
-                docs.put(id, similarity);
+                docs.put(fileName, similarity);
             } catch (IOException e) {
                 e.printStackTrace();
             }
