@@ -2,9 +2,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
 public class InvertedIndex {
     private HashMap<String, DictEntry> index;
@@ -13,6 +18,11 @@ public class InvertedIndex {
         this.index=new HashMap<>();
     }
 
+    /**
+     * function to build index
+     * @param filenames[]
+     * @return index
+     */
     public HashMap<String, DictEntry> buildIndex(String[] filenames) {
         // Initialize the document ID to 1
         int docId = 1;
@@ -69,11 +79,18 @@ public class InvertedIndex {
         return index;
     }
 
-    private void listFilesContainingQuery(String query, HashMap<String, DictEntry> index) {
+    /**
+     * funciont to get all files that contains the query phrase
+     * @param query
+     * @param index
+     * @return list of files
+     */
+    private List<Integer> listFilesContainingQuery(String query, HashMap<String, DictEntry> index) {
+        List<Integer>docVector =new Vector<>(0, 0);
         // Check if the index has been built
         if (index == null) {
             System.out.println("Index has not been built. Build it first.");
-            return;
+            return null;
         }
     
         // Convert the query to lowercase and split it into individual words
@@ -83,7 +100,7 @@ public class InvertedIndex {
         String firstWord = words[0];
         if (!index.containsKey(firstWord)) {
             System.out.println("None of the query terms exist in any document.");
-            return;
+            return null;
         }
     
         // Find the postings list for the first word
@@ -143,7 +160,8 @@ public class InvertedIndex {
     
             // Print the document if all the words in the query occur in it
             if (foundMatch) {
-                System.out.println("Document " + posting.docId + " contains the query.");
+                // System.out.println("Document " + posting.docId + " contains the query.");
+                docVector.add(posting.docId);
             }
     
             // Move to the next document in the postings list
@@ -151,9 +169,48 @@ public class InvertedIndex {
                 posting = posting.next;
             }
         }
+        return docVector;
     }
-
-    public void search(String word){
-        this.listFilesContainingQuery(word, index);
+    
+    /**
+     * funciont to get all files that contains the query phrase
+     * @param word
+     * @return list of files
+     */
+    public List<Integer> search(String word){
+        return this.listFilesContainingQuery(word, index);
+    }
+    
+    /**
+     * function to caculate similarity
+     * @param phrase
+     * @return `map<Integer, Double>` of documents id and similarity
+     */
+    public Map<Integer,Double> culculateCosineSimilarity(String phrase){
+        // get all filles contains this phrase
+        List<Integer> docIds = this.search(phrase);
+        if(docIds == null){
+            return null;
+        }
+        // container to store each doc with 
+        Map<Integer,Double>docs = new HashMap<>();
+        // loop on matched docs
+        for (int id : docIds) {
+            // prepare fileName
+            String fileName = ("test" + id + ".txt");
+            Path path = Paths.get(fileName);
+            try {
+                // reed content of the file
+                byte[] fileBytes = Files.readAllBytes(path);
+                String content = new String(fileBytes);
+                // calculate similarity
+                double similarity = CosineSimilarity.calculateCosineSimilarity(phrase, content);
+                // insert into docs
+                docs.put(id, similarity);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return docs;
     }
 }
