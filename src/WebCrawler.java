@@ -51,7 +51,8 @@ public class WebCrawler {
                 // Connect to the URL and get the HTML// document using Jsoup
                 Document document = Jsoup.connect(url).get();
                 // Extract all the links on the page
-                String name = document.title() + ".txt";
+                String name = (document.title() + ".txt").
+                    replaceAll("[^a-zA-Z0-9_.-]", "");
                 String body = document.body().text();
                 FileHandler.writeToFile(name, body);
                 fileMatches.add("reultfolder\\..\\resultfolder\\" + name);
