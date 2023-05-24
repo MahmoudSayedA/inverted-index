@@ -18,7 +18,7 @@ public class App {
             // test similarity
             if(slection == 1){
                 // prepare file names
-                String[] files = { "test1.txt", "test2.txt", "test3.txt" };
+                String[] files = { "test1.txt", "test2.txt", "test3.txt", "test4.txt", "test5.txt" };
                 // build the index
                 InvertedIndex index = new InvertedIndex();
                 index.buildIndex(files);
@@ -36,7 +36,7 @@ public class App {
             // test crawl
             else{
                     WebCrawler webCrawler =new WebCrawler(2);
-                    String url = "https://example.com/";
+                    String url = "https://example.com/"; // Domains Protocols
 
                     try (Scanner scanner = new Scanner(System.in)) {
                         // read query
