@@ -58,6 +58,8 @@ public class App {
      * @param docs
      */
     protected static void printSortedMap(Map<String, Double> docs){
+        if(docs == null)
+            return;
         // Create a list of map entries
         List<Map.Entry<String, Double>> entries = new ArrayList<>(docs.entrySet());
 
